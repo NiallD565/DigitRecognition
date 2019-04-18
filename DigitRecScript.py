@@ -4,15 +4,15 @@ import numpy as np
 import os
 from os.path import basename
 
-yTrain = []
+image_label_list = []
 for filename in glob.glob('Dataset/*.png'): #assuming png
     im = Image.open(filename)
     label = (filename.split("_")[1])
     #print(label)
-    yTrain.append(label)
+    image_label_list.append(label)
     im.close()
 
-#print(yTrain)
+#print(image_label_list)
 
 %matplotlib inline
 
@@ -20,8 +20,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 flat_Image_List = [] # new list containing flatten image arrays
-#for img in yTrain: # iterate over the images contained in the directory
-for filename in glob.glob('Dataset/*.png'):
+for filename in glob.glob('Dataset/*.png'):# iterate over the images contained in the directory
     im = Image.open(filename)
     img = np.reshape(im, (12288))
     flat_Image_List.append(img) # Append to the list 
@@ -34,18 +33,20 @@ imageSize = 12288
 
 from numpy import array
 
-xTrain = array(flat_Image_List)
+image_array = array(flat_Image_List)
 
 #print(flat_Image_List)
-print(xTrain)
+print(image_array)
 
+image_array = np.reshape(image_array,(len(image_array), 64, 64, 3))
+image_array = image_array.astype('float32')
 # Converts RGB to a range between 0-1
-xTrain = xTrain/255
+image_array = image_array/255
 
-noLabels = len(np.unique(yTrain))
+noLabels = len(np.unique(image_label_list))
 print(noLabels)
-yTrain = np.array(yTrain)
-print(yTrain.shape)
+label_array = np.array(image_label_list)
+print(label_array.shape)
 
 from numpy import argmax
 from sklearn.preprocessing import LabelEncoder
@@ -58,7 +59,7 @@ print(values)
 
 # integer encode
 label_encoder = LabelEncoder()
-labelData = label_encoder.fit_transform(yTrain)
+labelData = label_encoder.fit_transform(label_array)
 print(labelData)
 
 # binary encode
@@ -71,26 +72,22 @@ print(labelData)
 inverted = label_encoder.inverse_transform([argmax(labelData[10, :])])
 print(inverted)
 
-yTrain.shape
-print(yTrain)
+label_array.shape
+print(label_array)
 
-xTrain = np.reshape(xTrain,(len(xTrain), 64, 64, 3))
 input_shape = (64, 64, 3)
 
-xTrain = xTrain.astype('float32')
+import random
+random.Random(4).shuffle(image_array)
+random.Random(4).shuffle(labelData)
+#print(image_array)
+#print(labelData)
 
-# For encoding categorical variables and pre processing.
-import sklearn.preprocessing as pre
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-
-encoder = pre.LabelBinarizer()
-encoder.fit(yTrain)
-outputs = encoder.transform(yTrain)
-
-
-inputs = xTrain
-inputs.shape
-print(encoder)
+from sklearn.model_selection import train_test_split
+# create training and testing vars
+X_train, X_test, y_train, y_test = train_test_split(image_array, labelData, test_size=0.2)
+print (X_train.shape, y_train.shape)
+print (X_test.shape, y_test.shape)
 
 # ------- MODEL -------
 # Import keras.
@@ -119,4 +116,8 @@ model.summary()
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 # Number of Epoch is the amount of times the training set is put through the model
 # The batch size is the amount of images the models processes at one time
-model.fit(xTrain,labelData, epochs=10, batch_size=300)
+model.fit(X_train,y_train, epochs=3, batch_size=300)
+
+# ------ Testing the model ------
+scores = model.evaluate(X_test, y_test, verbose = 0)
+print("Error percentage: %.2f%%" %(100 - scores[1] * 100))
