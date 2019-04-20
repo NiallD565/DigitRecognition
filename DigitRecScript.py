@@ -116,8 +116,20 @@ model.summary()
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 # Number of Epoch is the amount of times the training set is put through the model
 # The batch size is the amount of images the models processes at one time
-model.fit(X_train,y_train, epochs=3, batch_size=300)
+model.fit(X_train,y_train, epochs=5, batch_size=300)
 
 # ------ Testing the model ------
 scores = model.evaluate(X_test, y_test, verbose = 0)
 print("Error percentage: %.2f%%" %(100 - scores[1] * 100))
+
+import pickle
+
+# save the model to disk
+filename = 'finalized_model.h5'
+pickle.dump(model, open(filename, 'wb'))
+
+# load the model from disk
+loaded_model = pickle.load(open(filename, 'rb'))
+scores = loaded_model.evaluate(X_test, y_test, verbose = 0)
+
+print("Error percentage from loaded model: %.2f%%" %(100 - scores[1] * 100))
