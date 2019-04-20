@@ -82,6 +82,8 @@ def upload():
         f = request.files['file']
 
         label_encoder = LabelEncoder()
+        data = ['0', '1', '2','3', '4','5', '6','7', '8', '9', 'A', 'B', 'C', 'D', 'E']
+        tempLabelData = label_encoder.fit_transform(data)
 
         # Save the file to ./uploads
         basepath = os.path.dirname(__file__)
@@ -95,7 +97,8 @@ def upload():
         # Process your result for human
         #pred_class = preds.argmax(axis=-1) # Simple argmax
         #result = str(preds) # Convert to string
-        result = str(preds.argmax(axis=-1))
+        TempResult = preds.argmax(axis=-1)
+        result = str(label_encoder.inverse_transform(TempResult))
         return result
        
     return None
