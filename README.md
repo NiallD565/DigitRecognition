@@ -18,4 +18,4 @@ python app.py
 ```
 Then open browser and go to the address http://127.0.0.1:5000
 
-Then click the button on the web page and select an image of a character you would like to predict
+Then click the button on the web page and select an image of a character you would like to predict and press open then press the predict button the result of the models prediction will be output to the page
