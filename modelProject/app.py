@@ -99,7 +99,7 @@ def upload():
         #result = str(preds) # Convert to string
         TempResult = preds.argmax(axis=-1)
         result = str(label_encoder.inverse_transform(TempResult))
-        return result
+        return result[2]
        
     return None
 
