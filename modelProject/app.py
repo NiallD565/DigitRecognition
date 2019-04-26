@@ -22,65 +22,53 @@ from numpy import argmax
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 
-logging.debug('d1')
-
 # Define a flask app
 app = Flask(__name__)
 
 # Model saved with Keras model.save()
 MODEL_PATH = 'model/finalized_model.h5'
 
+#Loading trained model using pickle
 model = pickle.load(open(MODEL_PATH, 'rb'))
-logging.debug('d2')
-# Load your trained model
-#model = load_model(MODEL_PATH)
-model._make_predict_function()          # Necessary
+
+#Query model to make a prediction
+model._make_predict_function()       
 #print('Model loaded. Start serving...')
-logging.debug('d3')
-# You can also use pretrained model from Keras
-# Check https://keras.io/applications/
-#from keras.applications.resnet50 import ResNet50
-#model = ResNet50(weights='imagenet')
-#print('Model loaded. Check http://127.0.0.1:5000/')
 
-
+#Function to do model prediction
 def model_predict(img_path, model):
-    #img = image.load_img(img_path, target_size=(128, 128))
+    #load image with taget  size of 64 x 64 pixels. 
+    #This is what out model is trained on.
     img = image.load_img(img_path, target_size=(64, 64))
-    #, target_size=(64, 64) 49152, 12288
-    #img = np.reshape(img, (49152))
-    # Preprocessing the image
+    # Preprocessing the image, convert image to array
     x = image.img_to_array(img)
+    # Reshape the image to expected size that model is trained on
     x = np.reshape(x,(1, 64, 64, 3))
     x = x.astype('float32')
     x = x/255
 
-    #x = image.img_to_array(img)
-    # x = np.true_divide(x, 255)
-    #x = np.expand_dims(x, axis=0)
-
-    # Be careful how your trained model deals with the input
-    # otherwise, it won't make correct prediction!
-    # x = preprocess_input(x, mode='caffe')
-
+    # Get model to make prediction and return results
     preds = model.predict(x)
     return preds
-
-logging.debug('d4')
 
 @app.route('/', methods=['GET'])
 def index():
     # Main page
     return render_template('index.html')
 
-logging.debug('d5')
+# Displays the about page
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
+# Requests the prediction request to the model
 @app.route('/predict', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
         # Get the file from post request
         f = request.files['file']
 
+        # Handle the labels of the images
         label_encoder = LabelEncoder()
         data = ['0', '1', '2','3', '4','5', '6','7', '8', '9', 'A', 'B', 'C', 'D', 'E']
         tempLabelData = label_encoder.fit_transform(data)
@@ -94,20 +82,17 @@ def upload():
         # Make prediction
         preds = model_predict(file_path, model)
 
-        # Process your result for human
-        #pred_class = preds.argmax(axis=-1) # Simple argmax
-        #result = str(preds) # Convert to string
+        # Process your result for user
         TempResult = preds.argmax(axis=-1)
+        # Convert result to inverse to get readable result for user
         result = str(label_encoder.inverse_transform(TempResult))
         return result[2]
        
     return None
 
-logging.debug('d6')
-
 if __name__ == '__main__':
-    app.run(debug=True)
-
+    app.run(debug=True, host='0.0.0.0')
+    
     # Serve the app with gevent
     http_server = WSGIServer(('', 5000), app)
     http_server.serve_forever()

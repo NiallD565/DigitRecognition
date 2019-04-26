@@ -1,0 +1,16 @@
+{% extends "base.html" %} {% block content %}
+    <div class="jumbotron text-center">
+        <h1>Handwriting Recognition Application</h1>
+        <p class="lead">
+            This application allows users to upload a single handwritten character, 
+            letters and numbers included. The image will then be processsed and analysed 
+            by our computational model. Our system will then attempt to correctly predict 
+            the character.  
+            We have trained our model with the use of the NIST data set which contains
+            810,000 images of which we will use a portion of. This data set contains 
+            handwritten characters from 3600 writers, of numbers and letters, uppercase 
+            and lowercase included.
+        </p>
+    </div>
+    <button><a href="/">Back</a></button>
+{% endblock %}
